@@ -4,9 +4,7 @@ param(
     [switch]$Clean,
     [string]$OutputDir = ".",
     [switch]$OpenPdf,
-    [switch]$InstallDependencies,
-    [switch]$Verbose,
-    [switch]$Debug
+    [switch]$InstallDependencies
 )
 
 Set-StrictMode -Version Latest
@@ -32,7 +30,7 @@ function Write-Color {
 function Show-Usage {
     @"
 Usage:
-  .\generate-cv.ps1 [-OutputDir <path>] [-Clean] [-OpenPdf] [-InstallDependencies] [-Verbose] [-Debug] [-Help]
+  .\generate-cv.ps1 [-OutputDir <path>] [-Clean] [-OpenPdf] [-InstallDependencies] [-Help] [-Verbose] [-Debug]
 
 Options:
   -Help                 Show this help and exit.
@@ -40,8 +38,8 @@ Options:
   -Clean                Remove temporary LaTeX artifacts (.aux, .log, .toc, .out, .synctex.gz).
   -OpenPdf              Open the resulting PDF after successful compilation.
   -InstallDependencies  If xelatex is missing, allow automatic installation flow.
-  -Verbose              Show additional execution details.
-  -Debug                Show stack traces on failures.
+  -Verbose              Common PowerShell parameter for additional execution details.
+  -Debug                Common PowerShell parameter for stack traces on failures.
 
 Examples:
   .\generate-cv.ps1
@@ -207,7 +205,7 @@ function Invoke-LatexBuild {
         $outputText = ($output | Out-String)
         Write-BuildLog $outputText
 
-        if ($Verbose) {
+        if ($PSBoundParameters.ContainsKey('Verbose') -or $VerbosePreference -eq 'Continue') {
             Write-Host $outputText
         }
 
@@ -334,7 +332,7 @@ try {
 catch {
     Write-Color -Message "Build failed: $($_.Exception.Message)" -Color Red
     Write-ErrorLog "[$(Get-Date -Format o)] $($_.Exception.Message)"
-    if ($Debug) {
+    if ($PSBoundParameters.ContainsKey('Debug') -or $DebugPreference -ne 'SilentlyContinue') {
         Write-Color -Message $_.ScriptStackTrace -Color Yellow
         Write-ErrorLog $_.ScriptStackTrace
     }
